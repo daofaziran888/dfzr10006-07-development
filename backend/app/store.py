@@ -14,6 +14,9 @@ class Store:
         self._tables: dict[str, list[dict[str, Any]]] = {
             name: [dict(row) for row in rows] for name, rows in SEED_ROWS.items()
         }
+        # 运行期产生的批次与快照表：不写种子数据，由业务服务在预热/刷新时追加。
+        for runtime_table in ("cache_batches", "cache_snapshots"):
+            self._tables.setdefault(runtime_table, [])
 
     def module_names(self) -> list[str]:
         return sorted(self._tables)

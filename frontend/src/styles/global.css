@@ -31,5 +31,22 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
 .btn.ghost { background: transparent; }
 .link { border: none; background: none; color: var(--brand); cursor: pointer; padding: 0; }
-.page-foot { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.page-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--muted); }
 .error-text { color: #b42318; }
+.ok-text { color: #067647; }
+.row-selected { background: #eef4ff; }
+.detail-panel { margin-top: 18px; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.detail-head h3 { margin: 0 0 4px; font-size: 15px; }
+.detail-panel h4 { margin: 16px 0 8px; font-size: 14px; }
+.action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 12px 0; }
+.action-box { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: #fbfcfe; }
+.action-box strong { font-size: 13px; }
+.hint-text { color: var(--muted); font-size: 12px; margin: 0; }
+.state-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; white-space: nowrap; }
+.state-badge.fresh { background: #e7f6ec; color: #067647; border: 1px solid #abefc6; }
+.state-badge.expired { background: #fffaeb; color: #b54708; border: 1px solid #fedf89; }
+.state-badge.invalid { background: #fef3f2; color: #b42318; border: 1px solid #fecdca; }
+.payload-pre { margin: 0; max-width: 320px; max-height: 200px; overflow: auto; font-size: 11px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 6px; white-space: pre-wrap; word-break: break-all; }
+.reason-cell { max-width: 360px; font-size: 12px; color: #334155; }
+.filter-item select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; min-width: 200px; }

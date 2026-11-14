@@ -45,6 +45,7 @@ export default function RouterView() {
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
   const [filters, setFilters] = useState<Record<string, string>>({})
   const filterFields = useMemo(() => columns.slice(0, 3), [])
 
@@ -70,17 +71,42 @@ export default function RouterView() {
 
   async function runAction(action: string, row: Row) {
     setErrorMessage('')
+    setInfoMessage('')
     try {
       const response = await request(`${ENDPOINT}/${row.id}/actions`, {
         method: 'POST',
         body: JSON.stringify({ action }),
       })
-      if (!response.ok) {
-        throw new Error('查询路由分发动作未生效，请稍后重试')
+      const payload = await response.json()
+      if (!response.ok || payload.ok === false) {
+        throw new Error(payload.message || '查询路由分发动作未生效，请稍后重试')
       }
+      setInfoMessage(payload.message)
       await reload()
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : '查询路由分发操作失败')
+    }
+  }
+
+  async function changeTarget(row: Row) {
+    setErrorMessage('')
+    setInfoMessage('')
+    const current = String(row['目标服务'] ?? '')
+    const next = window.prompt(`切换规则 ${String(row['规则编号'])} 的目标服务（当前：${current}）。切换后引用旧目标服务的缓存键版本会自动推进、旧快照立即失效。`, current)
+    if (next === null) return
+    try {
+      const response = await request(`${ENDPOINT}/${row.id}/target`, {
+        method: 'POST',
+        body: JSON.stringify({ values: { 目标服务: next.trim() } }),
+      })
+      const payload = await response.json()
+      if (!response.ok || payload.ok === false) {
+        throw new Error(payload.message || '目标服务切换未生效')
+      }
+      setInfoMessage(payload.message)
+      await reload()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : '目标服务切换失败')
     }
   }
 
@@ -142,6 +168,9 @@ export default function RouterView() {
                     {action}
                   </button>
                 ))}
+                <button className="link" type="button" onClick={() => void changeTarget(row)}>
+                  切换目标服务
+                </button>
               </td>
             </tr>
           ))}
@@ -156,6 +185,7 @@ export default function RouterView() {
       <footer className="page-foot">
         <span>共 {total} 条查询路由分发记录</span>
         {errorMessage && <span className="error-text">{errorMessage}</span>}
+        {infoMessage && <span className="ok-text">{infoMessage}</span>}
       </footer>
     </section>
   )

@@ -58,6 +58,16 @@ def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     return ActionResult(ok=True, message=message, entry=entry)
 
 
+@router.post("/{entry_id}/target", response_model=ActionResult)
+def change_target(entry_id: int, payload: EntryPayload) -> ActionResult:
+    """切换路由规则的目标服务，并联动推进相关缓存键名的版本、作废旧快照。"""
+    new_target = str(payload.values.get("目标服务") or "").strip()
+    entry, message, affected = service.change_target(entry_id, new_target)
+    if entry is None:
+        return ActionResult(ok=False, message=message)
+    return ActionResult(ok=True, message=message, entry={"rule": entry, "affected_cache": affected})
+
+
 @router.get("/export")
 def export_entries() -> dict[str, Any]:
     """导出查询路由分发清单：返回当前过滤条件下的全量数据。"""

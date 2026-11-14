@@ -59,3 +59,34 @@ class RouterService:
         entry["pending"] = target != STATUS_ORDER[-1]
         entry["abnormal"] = action in NEGATIVE_ACTIONS
         return entry, f"路由规则已{action}"
+
+    def change_target(self, entry_id: int, new_target: str) -> tuple[dict[str, Any] | None, str, list[dict[str, Any]]]:
+        """切换路由规则的目标服务。
+
+        目标服务变化会改变查询结果的来源版本，因此必须联动结果缓存加速：
+        命中旧目标服务的缓存键名推进键版本并立即作废旧快照，
+        避免灰度规则复用上一个目标服务留下的旧结果。
+        """
+        entry = store.find(MODULE, entry_id)
+        if entry is None:
+            return None, f"路由规则 {entry_id} 不存在或已归档", []
+        target = str(new_target or "").strip()
+        if not target:
+            return None, "目标服务不能为空", []
+        old_target = str(entry.get("目标服务") or "")
+        if old_target == target:
+            return entry, "目标服务与当前配置一致，无需变更", []
+        entry["目标服务"] = target
+        # 局部导入避免 services 包初始化阶段的循环依赖。
+        from app.services.cache import CacheService
+
+        affected = CacheService().on_router_target_changed(old_target, target)
+        if affected:
+            key_names = "、".join(str(item.get("配置编号", "")) for item in affected)
+            message = (
+                f"目标服务已由「{old_target}」切换为「{target}」，"
+                f"并联动作废 {len(affected)} 条缓存配置（{key_names}）的旧版本快照"
+            )
+        else:
+            message = f"目标服务已由「{old_target}」切换为「{target}」，当前没有引用旧目标服务的缓存配置"
+        return entry, message, affected
